@@ -16,6 +16,7 @@ add_executable(MewChat
     src/main.cpp
     src/ui/chatwindow.h
     src/ui/chatwindow.cpp
+    resources/resources.qrc
 )
 
 target_link_libraries(MewChat PRIVATE Qt6::Widgets)

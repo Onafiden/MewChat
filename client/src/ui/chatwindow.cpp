@@ -16,32 +16,33 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
 
     m_loginButton = new QPushButton("Войти", this);
 
-
+    QLabel *errorLabel = new QLabel("Неверный логин или пароль");
+    errorLabel->setObjectName("authErrorLabel");
+    errorLabel->hide();
 
 
     QVBoxLayout *authLayout = new QVBoxLayout(this);
 
     authLayout->addWidget(m_titleLabel);
     authLayout->addWidget(m_loginInput);
+    authLayout->addWidget(errorLabel);
     authLayout->addWidget(m_passwordInput);
     authLayout->addWidget(m_loginButton);
 
-    authLayout->setContentsMargins(50, 50, 50, 50);
+    //authLayout->setContentsMargins(50, 50, 50, 50);
     authLayout->setSpacing(15);
 
     setLayout(authLayout);
 
 
 
-    connect(m_loginButton, &QPushButton::clicked, [this]() {
+    connect(m_loginButton, &QPushButton::clicked, [this, errorLabel]() {
         QString username = m_loginInput->text().trimmed();
         QString password = m_passwordInput->text();
     
 
         if (username.isEmpty()) {
-            m_titleLabel->setText("Ошибка: Никнейм не может быть пустым!");
-            m_titleLabel->setStyleSheet("color: #bf616a;");
-            return;
+            errorLabel->show();
         }
         
     });
