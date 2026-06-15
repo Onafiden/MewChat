@@ -113,30 +113,28 @@ void MewChat::createLoginScreen() {
 
 
 void MewChat::createChatScreen() {
-    // 1. Создаем страницу-контейнер для чата
+
     m_chatPage = new QWidget(this);
     
-    // Главная горизонтальная сетка (Сайдбар слева, чат справа)
     QHBoxLayout *chatMainLayout = new QHBoxLayout(m_chatPage);
 
-    // 2. ЛЕВАЯ ПАНЕЛЬ: Список комнат
     m_roomsList = new QListWidget(m_chatPage);
-    m_roomsList->setFixedWidth(200); // Ограничиваем ширину сайдбара
+    m_roomsList->setFixedWidth(200);
     m_roomsList->setObjectName("roomsList");
     m_roomsList->addItem("Общий чат");
     m_roomsList->addItem("Комната флуда");
 
-    // 3. ПРАВАЯ ПАНЕЛЬ: Контейнер для истории и ввода
+
     QWidget *rightWidget = new QWidget(m_chatPage);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
 
-    // Окно истории сообщений
+
     m_chatHistory = new QTextEdit(m_chatPage);
     m_chatHistory->setObjectName("chatHistory");
-    m_chatHistory->setReadOnly(true); // Запрещаем юзеру стирать историю руками
+    m_chatHistory->setReadOnly(true);
 
-    // Нижняя строка: Поле ввода + Кнопка
+
     QHBoxLayout *inputLayout = new QHBoxLayout();
     
     m_messageInput = new QLineEdit(m_chatPage);
@@ -146,15 +144,15 @@ void MewChat::createChatScreen() {
     m_sendButton = new QPushButton("Отправить", m_chatPage);
     m_sendButton->setObjectName("sendButton");
 
-    // Собираем нижнюю строчку ввода
+
     inputLayout->addWidget(m_messageInput);
     inputLayout->addWidget(m_sendButton);
 
-    // Вертикально складываем историю и ввод в правую панель
+
     rightLayout->addWidget(m_chatHistory);
     rightLayout->addLayout(inputLayout);
 
-    // Горизонтально объединяем левый сайдбар и правую часть
+
     chatMainLayout->addWidget(m_roomsList);
     chatMainLayout->addWidget(rightWidget);
 }
