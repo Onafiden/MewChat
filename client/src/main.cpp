@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
     window.setWindowTitle("MewChat");
     window.resize(800, 600);
     
-    QFile styleFile("../resources/style.qss");
+    QFile styleFile(":/style.qss");
     if (styleFile.open(QFile::ReadOnly | QFile::Text)) {
         QTextStream stream(&styleFile);
         app.setStyleSheet(stream.readAll());
