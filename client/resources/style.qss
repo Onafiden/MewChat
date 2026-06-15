@@ -5,3 +5,11 @@ QLabel#authErrorLabel {
     padding: 0px;
     margin: 0px;
 }
+
+
+QPushButton#mainIcon {
+    background-color: transparent; /* Делаем фон полностью прозрачным */
+    border: none;                  /* Убираем стандартную рамку Qt */
+    padding: 0px;                  /* Сбрасываем внутренние отступы */
+    margin: 0px;                   /* Сбрасываем внешние отступы */
+}

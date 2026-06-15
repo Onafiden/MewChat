@@ -4,6 +4,7 @@
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QLabel>
+#include <QSoundEffect>
 
 
 
@@ -17,10 +18,11 @@ public:
 
 private:
 
+    QPushButton    *m_logoButton;
     QLineEdit      *m_loginInput;
     QLineEdit      *m_passwordInput;
     QPushButton    *m_loginButton;
     QStackedWidget *m_screenLayers;
-    QLabel         *m_titleLabel;
+    QPushButton    *m_titleIcon;
 
 };

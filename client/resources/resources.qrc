@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>style.qss</file>
+        <file>img/mainlogo.png</file>
+        <file>sound/mew.wav</file>
     </qresource>
 </RCC>
