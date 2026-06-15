@@ -17,14 +17,7 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
 
     m_stackedWidget->setCurrentIndex(0);
 
-
-    
-
-
 }
-
-
-
 
 
 
@@ -103,13 +96,6 @@ void MewChat::createLoginScreen() {
         errorLabel->hide();
     });
 }
-
-
-
-
-
-
-
 
 
 void MewChat::createChatScreen() {
