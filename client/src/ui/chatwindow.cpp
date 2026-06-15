@@ -141,4 +141,18 @@ void MewChat::createChatScreen() {
 
     chatMainLayout->addWidget(m_roomsList);
     chatMainLayout->addWidget(rightWidget);
+
+
+    auto sendMessage = [this]() {
+        QString text = m_messageInput->text().trimmed();
+        
+        if (!text.isEmpty()) {
+            m_chatHistory->append("<b>Вы:</b> " + text); 
+            
+            m_messageInput->clear(); 
+        }
+    };
+
+    connect(m_sendButton, &QPushButton::clicked, sendMessage);
+    connect(m_messageInput, &QLineEdit::returnPressed, sendMessage);
 }
