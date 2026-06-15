@@ -13,3 +13,37 @@ QPushButton#mainIcon {
     padding: 0px;                  /* Сбрасываем внутренние отступы */
     margin: 0px;                   /* Сбрасываем внешние отступы */
 }
+
+
+QLineEdit#authInput {
+    background-color: #FFFFFF;      /* Чистый белый фон внутри поля */
+    border: 2px solid #E0E0E0;      /* Тонкая серая рамка */
+    border-radius: 8px;             /* Приятное скругление углов */
+    padding: 10px 15px;             /* Внутренние отступы, чтобы текст не прилипал к краям */
+    font-size: 14px;                /* Размер шрифта */
+    color: #333333;                 /* Цвет вводимого текста */
+}
+
+QLineEdit:focus {
+    border: 2px solid #FF9F68;      /* Рамка окрашивается в цвет логотипа при вводе */
+}
+
+QPushButton#authButton {
+    background-color: #FF9F68;      /* Фирменный оранжевый цвет (в тон твоего котика) */
+    color: #FFFFFF;                 /* Белый текст */
+    border: none;
+    border-radius: 8px;             /* Скругление как у полей ввода */
+    padding: 12px;                  /* Сделаем её повыше и солиднее */
+    font-size: 15px;
+    font-weight: bold;              /* Жирный текст для акцента */
+
+    padding: 12px; 
+    margin: 4px 0px;
+}
+
+
+
+/* Поведение кнопки при нажатии */
+QPushButton#authButton:pressed {
+    background-color: #E67E43;      /* Еще темнее в момент клика */
+}

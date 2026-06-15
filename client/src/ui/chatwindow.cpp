@@ -15,14 +15,19 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
 
 
     m_loginInput = new QLineEdit(this);
-    m_loginInput->setPlaceholderText("Введите ваш никнейм...");
+    m_loginInput->setObjectName("authInput");
+    m_loginInput->setFixedWidth(320);
+    m_loginInput->setPlaceholderText("Введите ваш логин...");
 
     m_passwordInput = new QLineEdit(this);
     m_passwordInput->setPlaceholderText("Введите пароль...");
+    m_passwordInput->setObjectName("authInput");
+    m_passwordInput->setFixedWidth(320);
     m_passwordInput->setEchoMode(QLineEdit::Password);
 
     m_loginButton = new QPushButton("Войти", this);
-
+    m_loginButton->setObjectName("authButton");
+    m_loginButton->setFixedWidth(320);
 
     QLabel *errorLabel = new QLabel("Неверный логин или пароль");
     errorLabel->setObjectName("authErrorLabel");
@@ -42,10 +47,10 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
     authLayout->addStretch();
 
     authLayout->addWidget(m_titleIcon,0, Qt::AlignCenter);
-    authLayout->addWidget(m_loginInput);
-    authLayout->addWidget(m_passwordInput);
-    authLayout->addWidget(errorLabel);
-    authLayout->addWidget(m_loginButton);
+    authLayout->addWidget(m_loginInput,0, Qt::AlignCenter);
+    authLayout->addWidget(m_passwordInput,0, Qt::AlignCenter);
+    authLayout->addWidget(errorLabel,0, Qt::AlignCenter);
+    authLayout->addWidget(m_loginButton,0, Qt::AlignCenter);
 
     authLayout->addStretch();
 
@@ -69,6 +74,15 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
             errorLabel->show();
         }
         
+    });
+
+
+    connect(m_loginInput, &QLineEdit::textChanged, [this, errorLabel]() {
+        errorLabel->hide();
+    });
+
+    connect(m_passwordInput, &QLineEdit::textChanged, [this, errorLabel]() {
+        errorLabel->hide();
     });
 
 
