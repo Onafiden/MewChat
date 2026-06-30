@@ -5,20 +5,27 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-    name: Build Go Server
-    runs-on: ubuntu-latest
+  deploy:
+    name: Build and Deploy on Debian
+    # Указываем GitHub использовать наш домашний раннер вместо облачного ubuntu-latest
+    runs-on: self-hosted
 
     steps:
+    # Шаг 1: Скачиваем свежий код из гитхаба в рабочую папку раннера на ноутбуке
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.26'
-
-    - name: Build Binary
-      run:
+    # Шаг 2: Собираем бинарник прямо на ноутбуке
+    - name: Build Go Server
+      run: |
         cd server
         go build -v -o mewchat-server ./cmd/app/main.go
+
+    # Шаг 3: Запуск приложения в фоне (пока в простом режиме screen или nohup)
+    - name: Run Application
+      run: |
+        cd server
+        # Убиваем старый процесс сервера, если он был запущен, чтобы освободить порт
+        pkill mewchat-server || true
+        # Запускаем новый бинарник в фоне, чтобы пайплайн не завис в ожидании
+        nohup ./mewchat-server > server.log 2>&1 &
