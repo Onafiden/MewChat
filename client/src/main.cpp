@@ -2,7 +2,7 @@
 #include <QFile>
 #include <QTextStream>
 #include "ui/chatwindow.h"
-//test commit
+
 int main(int argc, char *argv[]) {
 
     QApplication app(argc, argv);

@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # Наш контейнер с базой данных
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: mewchat_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - mewchat_network
+
+
+networks:
+  mewchat_network:
+    driver: bridge
+
+volumes:
+  pgdata:
