@@ -31,9 +31,9 @@ func main() {
 	if *createRoomFlag != "" {
 		err := repository.CreateRoom(db, *createRoomFlag)
 		if err != nil {
-			log.Fatalf("❌ Ошибка при создании комнаты: %v", err)
+			log.Fatalf("Ошибка при создании комнаты: %v", err)
 		}
-		fmt.Printf("🚀 Админ-панель: Комната '%s' успешно создана/проверена в БД!\n", *createRoomFlag)
+		fmt.Printf("Админ-панель: Комната '%s' успешно создана/проверена в БД!\n", *createRoomFlag)
 		os.Exit(0)
 	}
 
