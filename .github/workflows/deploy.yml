@@ -7,15 +7,12 @@ on:
 jobs:
   deploy:
     name: Build and Deploy on Debian
-    # Указываем GitHub использовать наш домашний раннер вместо облачного ubuntu-latest
     runs-on: self-hosted
 
     steps:
-    # Шаг 1: Скачиваем свежий код из гитхаба в рабочую папку раннера на ноутбуке
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Шаг 2: Собираем бинарник прямо на ноутбуке
     - name: Build Go Server
       run: |
         cd server
