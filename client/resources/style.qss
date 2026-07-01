@@ -144,3 +144,59 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     background: none;
     height: 0px;
 }
+
+QListWidget#chatHistory {
+    background-color: #FAFAFA;
+    border: none;
+    padding: 10px 0px;
+    outline: none;
+}
+
+QListWidget#chatHistory::item {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+}
+QListWidget#chatHistory::item:hover {
+    background-color: transparent;
+}
+
+QFrame#outgoingBubble {
+    background-color: #FF9F68;
+    border-radius: 16px;
+    border-bottom-right-radius: 3px;
+}
+
+QFrame#incomingBubble {
+    background-color: #FFFFFF;
+    border: 1px solid #EAEAEA;
+    border-radius: 16px;
+    border-bottom-left-radius: 3px;
+}
+
+QFrame#outgoingBubble QLabel#msgText {
+    color: #FFFFFF;
+    font-size: 14px;
+}
+
+QFrame#incomingBubble QLabel#msgText {
+    color: #333333;
+    font-size: 14px;
+}
+
+QLabel#msgSender {
+    color: #FF8E4F;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QFrame#outgoingBubble QLabel#msgTime {
+    color: #FFE3D4;
+    font-size: 10px;
+}
+
+QFrame#incomingBubble QLabel#msgTime {
+    color: #A0A0A0;
+    font-size: 10px;
+}   

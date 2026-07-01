@@ -1,9 +1,10 @@
 #include "chatwindow.h"
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QTime>
 
-
-MewChat::MewChat(QWidget *parent) : QWidget(parent){
-
+MewChat::MewChat(QWidget *parent) : QWidget(parent) {
     m_stackedWidget = new QStackedWidget(this);
 
     createLoginScreen();
@@ -16,10 +17,7 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent){
     mainLayout->addWidget(m_stackedWidget);
 
     m_stackedWidget->setCurrentIndex(0);
-
 }
-
-
 
 void MewChat::createLoginScreen() {
 
@@ -97,32 +95,29 @@ void MewChat::createLoginScreen() {
     });
 }
 
-
 void MewChat::createChatScreen() {
-
     m_chatPage = new QWidget(this);
-    
     QHBoxLayout *chatMainLayout = new QHBoxLayout(m_chatPage);
 
+    // Список комнат
     m_roomsList = new QListWidget(m_chatPage);
     m_roomsList->setFixedWidth(200);
     m_roomsList->setObjectName("roomsList");
     m_roomsList->addItem("Общий чат");
     m_roomsList->addItem("Комната флуда");
 
-
     QWidget *rightWidget = new QWidget(m_chatPage);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
 
-
-    m_chatHistory = new QTextEdit(m_chatPage);
+    // Инициализируем историю как QListWidget
+    m_chatHistory = new QListWidget(m_chatPage);
     m_chatHistory->setObjectName("chatHistory");
-    m_chatHistory->setReadOnly(true);
+    m_chatHistory->setSelectionMode(QAbstractItemView::NoSelection); // Отключаем выделение элементов строк
+    m_chatHistory->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel); // Плавный скролл
 
-
+    // Поле ввода и кнопка
     QHBoxLayout *inputLayout = new QHBoxLayout();
-    
     m_messageInput = new QLineEdit(m_chatPage);
     m_messageInput->setObjectName("messageInput");
     m_messageInput->setPlaceholderText("Напишите сообщение...");
@@ -130,29 +125,86 @@ void MewChat::createChatScreen() {
     m_sendButton = new QPushButton("Отправить", m_chatPage);
     m_sendButton->setObjectName("sendButton");
 
-
     inputLayout->addWidget(m_messageInput);
     inputLayout->addWidget(m_sendButton);
-
 
     rightLayout->addWidget(m_chatHistory);
     rightLayout->addLayout(inputLayout);
 
-
     chatMainLayout->addWidget(m_roomsList);
     chatMainLayout->addWidget(rightWidget);
 
-
+    // Лямбда отправки сообщения
     auto sendMessage = [this]() {
         QString text = m_messageInput->text().trimmed();
-        
         if (!text.isEmpty()) {
-            m_chatHistory->append("<b>Вы:</b> " + text); 
-            
-            m_messageInput->clear(); 
+            // Вызываем наш новый метод рендеринга сообщений (isMe = true)
+            appendMessage("Вы", text, true); 
+            m_messageInput->clear();
         }
     };
 
     connect(m_sendButton, &QPushButton::clicked, sendMessage);
     connect(m_messageInput, &QLineEdit::returnPressed, sendMessage);
+}
+
+// Новый метод для отрисовки красивых тем сообщений
+void MewChat::appendMessage(const QString &sender, const QString &text, bool isMe) {
+    // 1. Создаем базовый виджет-контейнер для одной строки списка
+    QWidget *container = new QWidget(m_chatHistory);
+    QHBoxLayout *layout = new QHBoxLayout(container);
+    layout->setContentsMargins(10, 5, 10, 5);
+
+    // 2. Создаем "пузырь" сообщения
+    QFrame *bubble = new QFrame(container);
+    QVBoxLayout *bubbleLayout = new QVBoxLayout(bubble);
+    bubbleLayout->setContentsMargins(12, 8, 12, 8);
+    bubbleLayout->setSpacing(4);
+
+    // Имя отправителя
+    QLabel *senderLabel = new QLabel(sender, bubble);
+    senderLabel->setObjectName("msgSender");
+
+    // Текст сообщения
+    QLabel *textLabel = new QLabel(text, bubble);
+    textLabel->setObjectName("msgText");
+    textLabel->setWordWrap(true); // Перенос длинных строк
+
+    // Время отправки
+    QString currentTime = QTime::currentTime().toString("HH:mm");
+    QLabel *timeLabel = new QLabel(currentTime, bubble);
+    timeLabel->setObjectName("msgTime");
+    timeLabel->setAlignment(Qt::AlignRight | Qt::AlignBottom);
+
+    bubbleLayout->addWidget(senderLabel);
+    bubbleLayout->addWidget(textLabel);
+    bubbleLayout->addWidget(timeLabel);
+
+    // 3. Стилизация в зависимости от того, кто отправил (Вы или собеседник)
+    if (isMe) {
+        bubble->setObjectName("outgoingBubble");
+        senderLabel->hide(); // Себе имя можно не показывать
+        
+        layout->addStretch();  // Пружина слева сдвигает облачко ВПРАВО
+        layout->addWidget(bubble);
+    } else {
+        bubble->setObjectName("incomingBubble");
+        
+        layout->addWidget(bubble);
+        layout->addStretch();  // Пружина справа сдвигает облачко ВЛЕВО
+    }
+
+    // Ограничиваем максимальную ширину пузыря, чтобы он не растягивался на весь экран
+    bubble->setMaximumWidth(450);
+
+    // 4. Заталкиваем кастомный виджет в QListWidget
+    QListWidgetItem *item = new QListWidgetItem(m_chatHistory);
+    // Говорим элементу списка принять размер нашего кастомного виджета
+    item->setSizeHint(container->sizeHint()); 
+    
+    m_chatHistory->addItem(item);
+    m_chatHistory->setItemWidget(item, container);
+    
+    // Автоматический скролл вниз к новому сообщению
+    m_chatHistory->scrollToBottom();
 }
