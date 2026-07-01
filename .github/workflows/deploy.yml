@@ -21,11 +21,10 @@ jobs:
         cd server
         go build -v -o mewchat-server ./cmd/app/main.go
 
-    # Шаг 3: Запуск приложения в фоне (пока в простом режиме screen или nohup)
     - name: Run Application
+      env:
+        RUNNER_TRACKING_ID: ""
       run: |
         cd server
-        # Убиваем старый процесс сервера, если он был запущен, чтобы освободить порт
         pkill mewchat-server || true
-        # Запускаем новый бинарник в фоне, чтобы пайплайн не завис в ожидании
         nohup ./mewchat-server > server.log 2>&1 &
