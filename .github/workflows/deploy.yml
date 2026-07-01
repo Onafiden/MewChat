@@ -24,4 +24,7 @@ jobs:
       run: |
         cd server
         pkill mewchat-server || true
+        
+        cp ~/mewchat.env .env
+        
         nohup ./mewchat-server > server.log 2>&1 &
