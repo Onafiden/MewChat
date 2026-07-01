@@ -9,8 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Multimedia)
-
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network WebSockets Multimedia)
 
 add_executable(MewChat
     src/main.cpp
@@ -19,4 +18,4 @@ add_executable(MewChat
     resources/resources.qrc
 )
 
-target_link_libraries(MewChat PRIVATE Qt6::Widgets Qt6::Network Qt6::Multimedia)
+target_link_libraries(MewChat PRIVATE Qt6::Widgets Qt6::Network Qt6::WebSockets Qt6::Multimedia)

@@ -3,8 +3,12 @@
 #include <QHBoxLayout>
 #include <QFrame>
 #include <QTime>
+#include <QJsonDocument>
+#include <QJsonObject>
 
-MewChat::MewChat(QWidget *parent) : QWidget(parent) {
+MewChat::MewChat(QWidget *parent) 
+    : QWidget(parent), m_webSocket(new QWebSocket(QString(), QWebSocketProtocol::VersionLatest, this)), m_currentRoomId(1) {
+    
     m_stackedWidget = new QStackedWidget(this);
 
     createLoginScreen();
@@ -17,16 +21,19 @@ MewChat::MewChat(QWidget *parent) : QWidget(parent) {
     mainLayout->addWidget(m_stackedWidget);
 
     m_stackedWidget->setCurrentIndex(0);
+
+
+    connect(m_webSocket, &QWebSocket::connected, this, &MewChat::onWebSocketConnected);
+    connect(m_webSocket, &QWebSocket::disconnected, this, &MewChat::onWebSocketDisconnected);
+    connect(m_webSocket, &QWebSocket::textMessageReceived, this, &MewChat::onMessageReceived);
 }
 
 void MewChat::createLoginScreen() {
-
     m_loginPage = new QWidget(this);
-    
-
     QVBoxLayout *authLayout = new QVBoxLayout(m_loginPage);
+    authLayout->setAlignment(Qt::AlignCenter);
+    authLayout->setSpacing(15);
 
- 
     m_titleIcon = new QPushButton(m_loginPage);
     m_titleIcon->setIcon(QIcon(":/img/mainlogo.png"));
     m_titleIcon->setObjectName("mainIcon");
@@ -39,84 +46,67 @@ void MewChat::createLoginScreen() {
     m_loginInput->setPlaceholderText("Введите ваш логин...");
 
     m_passwordInput = new QLineEdit(m_loginPage);
-    m_passwordInput->setPlaceholderText("Введите пароль...");
     m_passwordInput->setObjectName("authInput");
     m_passwordInput->setFixedWidth(320);
     m_passwordInput->setEchoMode(QLineEdit::Password);
+    m_passwordInput->setPlaceholderText("Введите ваш пароль...");
 
-    m_loginButton = new QPushButton("Войти", m_loginPage);
+    m_loginButton = new QPushButton("Войти в аккаунт", m_loginPage);
     m_loginButton->setObjectName("authButton");
     m_loginButton->setFixedWidth(320);
 
-    QLabel *errorLabel = new QLabel("Неверный логин или пароль", m_loginPage);
-    errorLabel->setObjectName("authErrorLabel");
-    errorLabel->hide();
-
-
-    QSoundEffect *mewSound = new QSoundEffect(this);
-    mewSound->setSource(QUrl("qrc:/sound/mew.wav"));
-    mewSound->setVolume(0.75);
-
-
-    authLayout->addStretch();
     authLayout->addWidget(m_titleIcon, 0, Qt::AlignCenter);
     authLayout->addWidget(m_loginInput, 0, Qt::AlignCenter);
     authLayout->addWidget(m_passwordInput, 0, Qt::AlignCenter);
-    authLayout->addWidget(errorLabel, 0, Qt::AlignCenter);
     authLayout->addWidget(m_loginButton, 0, Qt::AlignCenter);
-    authLayout->addStretch();
 
-    authLayout->setContentsMargins(50, 50, 50, 50);
-    authLayout->setSpacing(15);
+    connect(m_loginButton, &QPushButton::clicked, this, &MewChat::handleLogin);
+    connect(m_loginInput, &QLineEdit::returnPressed, this, &MewChat::handleLogin);
+}
 
+void MewChat::handleLogin() {
+    m_username = m_loginInput->text().trimmed();
+    if (m_username.isEmpty()) {
+        m_username = "Анонимный Кот";
+    }
 
+    m_stackedWidget->setCurrentIndex(1);
+    
 
-    connect(m_titleIcon, &QPushButton::clicked, [this, mewSound](){
-        mewSound->play();
-    });
-
-    connect(m_loginButton, &QPushButton::clicked, [this, errorLabel]() {
-        QString username = m_loginInput->text().trimmed();
-        QString password = m_passwordInput->text();
-
-        if (username.isEmpty()) {
-            errorLabel->show();
-        } else {
-            m_stackedWidget->setCurrentIndex(1);
-        }
-    });
-
-    connect(m_loginInput, &QLineEdit::textChanged, [this, errorLabel]() {
-        errorLabel->hide();
-    });
-
-    connect(m_passwordInput, &QLineEdit::textChanged, [this, errorLabel]() {
-        errorLabel->hide();
-    });
+    connectToRoom(1); 
 }
 
 void MewChat::createChatScreen() {
     m_chatPage = new QWidget(this);
     QHBoxLayout *chatMainLayout = new QHBoxLayout(m_chatPage);
 
-    // Список комнат
+
     m_roomsList = new QListWidget(m_chatPage);
     m_roomsList->setFixedWidth(200);
     m_roomsList->setObjectName("roomsList");
-    m_roomsList->addItem("Общий чат");
-    m_roomsList->addItem("Комната флуда");
+
+    QListWidgetItem *generalRoom = new QListWidgetItem("Общий чат", m_roomsList);
+    generalRoom->setData(Qt::UserRole, 1);
+
+    QListWidgetItem *floodRoom = new QListWidgetItem("Комната флуда", m_roomsList);
+    floodRoom->setData(Qt::UserRole, 2);
+
+    m_roomsList->addItem(generalRoom);
+    m_roomsList->addItem(floodRoom);
+    m_roomsList->setCurrentItem(generalRoom);
+
+
+    connect(m_roomsList, &QListWidget::currentItemChanged, this, &MewChat::onRoomChanged);
 
     QWidget *rightWidget = new QWidget(m_chatPage);
     QVBoxLayout *rightLayout = new QVBoxLayout(rightWidget);
     rightLayout->setContentsMargins(0, 0, 0, 0);
 
-    // Инициализируем историю как QListWidget
     m_chatHistory = new QListWidget(m_chatPage);
     m_chatHistory->setObjectName("chatHistory");
-    m_chatHistory->setSelectionMode(QAbstractItemView::NoSelection); // Отключаем выделение элементов строк
-    m_chatHistory->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel); // Плавный скролл
+    m_chatHistory->setSelectionMode(QAbstractItemView::NoSelection);
+    m_chatHistory->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-    // Поле ввода и кнопка
     QHBoxLayout *inputLayout = new QHBoxLayout();
     m_messageInput = new QLineEdit(m_chatPage);
     m_messageInput->setObjectName("messageInput");
@@ -134,12 +124,17 @@ void MewChat::createChatScreen() {
     chatMainLayout->addWidget(m_roomsList);
     chatMainLayout->addWidget(rightWidget);
 
-    // Лямбда отправки сообщения
     auto sendMessage = [this]() {
         QString text = m_messageInput->text().trimmed();
-        if (!text.isEmpty()) {
-            // Вызываем наш новый метод рендеринга сообщений (isMe = true)
-            appendMessage("Вы", text, true); 
+        if (!text.isEmpty() && m_webSocket->isValid()) {
+            QJsonObject msgObj;
+            msgObj["sender"] = m_username;
+            msgObj["text"] = text;
+            msgObj["room_id"] = m_currentRoomId;
+
+            QJsonDocument doc(msgObj);
+            m_webSocket->sendTextMessage(doc.toJson(QJsonDocument::Compact));
+            
             m_messageInput->clear();
         }
     };
@@ -148,29 +143,66 @@ void MewChat::createChatScreen() {
     connect(m_messageInput, &QLineEdit::returnPressed, sendMessage);
 }
 
-// Новый метод для отрисовки красивых тем сообщений
+void MewChat::onRoomChanged(QListWidgetItem *current, QListWidgetItem *previous) {
+    Q_UNUSED(previous);
+    if (!current) return;
+
+    int roomId = current->data(Qt::UserRole).toInt();
+    connectToRoom(roomId);
+}
+
+void MewChat::connectToRoom(int roomId) {
+    m_currentRoomId = roomId;
+    
+    if (m_webSocket->isValid()) {
+        m_webSocket->close();
+    }
+
+    m_chatHistory->clear();
+
+    QString urlStr = QString("ws://192.168.100.5:8080/ws?room_id=%1").arg(m_currentRoomId);
+    m_webSocket->open(QUrl(urlStr));
+}
+
+void MewChat::onWebSocketConnected() {
+    appendMessage("Система", QString("Успешно подключено к комнате №%1").arg(m_currentRoomId), false);
+}
+
+void MewChat::onWebSocketDisconnected() {
+    appendMessage("Система", "Соединение разорвано сервером (Доступ запрещен или комната не существует).", false);
+}
+
+
+void MewChat::onMessageReceived(const QString &message) {
+    QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
+    if (!doc.isNull() && doc.isObject()) {
+        QJsonObject obj = doc.object();
+        QString sender = obj["sender"].toString();
+        QString text = obj["text"].toString();
+
+        bool isMe = (sender == m_username);
+        appendMessage(sender, text, isMe);
+    }
+}
+
+
 void MewChat::appendMessage(const QString &sender, const QString &text, bool isMe) {
-    // 1. Создаем базовый виджет-контейнер для одной строки списка
     QWidget *container = new QWidget(m_chatHistory);
     QHBoxLayout *layout = new QHBoxLayout(container);
     layout->setContentsMargins(10, 5, 10, 5);
 
-    // 2. Создаем "пузырь" сообщения
     QFrame *bubble = new QFrame(container);
     QVBoxLayout *bubbleLayout = new QVBoxLayout(bubble);
     bubbleLayout->setContentsMargins(12, 8, 12, 8);
     bubbleLayout->setSpacing(4);
 
-    // Имя отправителя
     QLabel *senderLabel = new QLabel(sender, bubble);
     senderLabel->setObjectName("msgSender");
 
-    // Текст сообщения
     QLabel *textLabel = new QLabel(text, bubble);
     textLabel->setObjectName("msgText");
-    textLabel->setWordWrap(true); // Перенос длинных строк
+    textLabel->setWordWrap(true);
 
-    // Время отправки
     QString currentTime = QTime::currentTime().toString("HH:mm");
     QLabel *timeLabel = new QLabel(currentTime, bubble);
     timeLabel->setObjectName("msgTime");
@@ -180,31 +212,26 @@ void MewChat::appendMessage(const QString &sender, const QString &text, bool isM
     bubbleLayout->addWidget(textLabel);
     bubbleLayout->addWidget(timeLabel);
 
-    // 3. Стилизация в зависимости от того, кто отправил (Вы или собеседник)
     if (isMe) {
         bubble->setObjectName("outgoingBubble");
-        senderLabel->hide(); // Себе имя можно не показывать
-        
-        layout->addStretch();  // Пружина слева сдвигает облачко ВПРАВО
+        senderLabel->hide();
+        layout->addStretch();
         layout->addWidget(bubble);
     } else {
         bubble->setObjectName("incomingBubble");
-        
+        if (sender == "Система") {
+            senderLabel->setStyleSheet("color: #e74c3c;");
+        }
         layout->addWidget(bubble);
-        layout->addStretch();  // Пружина справа сдвигает облачко ВЛЕВО
+        layout->addStretch();
     }
 
-    // Ограничиваем максимальную ширину пузыря, чтобы он не растягивался на весь экран
     bubble->setMaximumWidth(450);
 
-    // 4. Заталкиваем кастомный виджет в QListWidget
     QListWidgetItem *item = new QListWidgetItem(m_chatHistory);
-    // Говорим элементу списка принять размер нашего кастомного виджета
-    item->setSizeHint(container->sizeHint()); 
+    item->setSizeHint(container->sizeHint());
     
     m_chatHistory->addItem(item);
     m_chatHistory->setItemWidget(item, container);
-    
-    // Автоматический скролл вниз к новому сообщению
     m_chatHistory->scrollToBottom();
 }

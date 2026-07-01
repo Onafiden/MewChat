@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QSoundEffect>
 #include <QListWidget>
-#include <QTextEdit>
+#include <QtWebSockets/QWebSocket>
 
 class MewChat : public QWidget {
     Q_OBJECT
@@ -15,10 +15,17 @@ public:
     explicit MewChat(QWidget *parent = nullptr);
     ~MewChat() = default;
 
+private slots:
+    void onWebSocketConnected();
+    void onWebSocketDisconnected();
+    void onMessageReceived(const QString &message);
+    void onRoomChanged(QListWidgetItem *current, QListWidgetItem *previous);
+    void handleLogin();
+
 private:
     void createLoginScreen();
     void createChatScreen();
-    
+    void connectToRoom(int roomId);
     void appendMessage(const QString &sender, const QString &text, bool isMe);
 
     QStackedWidget *m_stackedWidget;
@@ -32,9 +39,11 @@ private:
     QPushButton    *m_titleIcon;
 
     QListWidget    *m_roomsList;
-    
     QListWidget    *m_chatHistory; 
-    
     QLineEdit      *m_messageInput;
     QPushButton    *m_sendButton;
+
+    QWebSocket     *m_webSocket;
+    int             m_currentRoomId;
+    QString         m_username;
 };
