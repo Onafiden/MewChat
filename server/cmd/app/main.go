@@ -18,9 +18,13 @@ func main() {
 	}
 	defer db.Close()
 
+	if err := repository.CreateSchema(db); err != nil {
+		log.Fatalf("Ошибка инициализации схем БД: %v", err)
+	}
+
 	port := ":8080"
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, "Бэкенд MewChat успешно авторизован в БД через .env!")
+		fmt.Fprint(w, "Бэкенд MewChat работает, база данных полностью готова!")
 	})
 
 	log.Printf("Сервер MewChat стартует на порту %s...", port)
