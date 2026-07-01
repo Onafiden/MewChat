@@ -230,7 +230,7 @@ void MewChat::appendMessage(const QString &sender, const QString &text, bool isM
 
     QListWidgetItem *item = new QListWidgetItem(m_chatHistory);
     item->setSizeHint(container->sizeHint());
-    
+    //dsafsdaf
     m_chatHistory->addItem(item);
     m_chatHistory->setItemWidget(item, container);
     m_chatHistory->scrollToBottom();
